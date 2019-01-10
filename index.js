@@ -22,14 +22,14 @@ fastify.get('/s/*', (request, reply) => {
     if (url.length < 1) {
         return reply.status(400).send({
             success: false,
-            message: 'No URL in params'
+            message: 'no URL in params'
         });
     }
 
     if (!validateUrl(url)) {
         return reply.status(400).send({
             success: false,
-            message: 'Given parameter is not a valid url'
+            message: 'given parameter is not a valid url'
         });
     }
 
@@ -43,7 +43,7 @@ fastify.get('/g/*', (request, reply) => {
     if (id.length < 1) {
         return reply.status(400).send({
             success: false,
-            message: 'No id in params'
+            message: 'no id in parameter'
         });
     }
 
@@ -75,7 +75,7 @@ fastify.get('/i/*', (request, reply) => { // info
             message: 'id doesnt exist'
         });
     }
-    
+
     return reply.status(200).send(post);
 });
 
