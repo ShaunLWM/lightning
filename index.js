@@ -1,10 +1,13 @@
 const low = require('lowdb');
+const useragent = require('useragent');
+const geoip = require('geoip-lite');
 const FileSync = require('lowdb/adapters/FileSync');
 const adapter = new FileSync(__dirname + '/db.json');
 const db = low(adapter);
 const shortid = require('shortid');
 const fastify = require('fastify')({
-    logger: true
+    logger: true,
+    trustProxy: true
 });
 
 db.defaults({ urls: [] }).write();
@@ -34,11 +37,26 @@ fastify.get('/s/*', (request, reply) => {
     }
 
     let id = shortid.generate();
-    db.get('urls').push({ s: id, l: url, c: 0 }).write(); // short, long, count
+    db.get('urls').push({ s: id, l: url, c: 0, i: [] }).write(); // short, long, count, info
     return reply.send({ id });
 });
 
 fastify.get('/g/*', (request, reply) => {
+    const browsersList = ['IE', 'Firefox', 'Chrome', 'Opera', 'Safari', 'Edge'];
+    const osList = ['Windows', 'Mac Os X', 'Linux', 'Chrome OS', 'Android', 'iOS'];
+    const botList = ['bot', 'dataminr', 'pinterest', 'yahoo', 'facebook', 'crawl'];
+    const filterInBrowser = agent => item => agent.family.toLowerCase().includes(item.toLocaleLowerCase());
+    const filterInOs = agent => item => agent.os.family.toLowerCase().includes(item.toLocaleLowerCase());
+
+    const { host } = request.headers;
+    const agent = useragent.parse(request.headers['user-agent']);
+    const [browser = 'Other'] = browsersList.filter(filterInBrowser(agent));
+    const [os = 'Other'] = osList.filter(filterInOs(agent));
+    const referrer = request.headers['referer'] && URL.parse(request.headers['referer']).hostname;
+    const location = geoip.lookup(request.raw.ip);
+    const country = location && location.country;
+    const isBot = botList.some(bot => agent.source.toLowerCase().includes(bot)) || agent.family === 'Other';
+    
     let id = request.params['*'].trim();
     if (id.length < 1) {
         return reply.status(400).send({
@@ -55,7 +73,8 @@ fastify.get('/g/*', (request, reply) => {
         });
     }
 
-    db.get('urls').find({ s: id }).assign({ c: post.c + 1 }).write();
+    let info = post.i.concat({ host, agent, browser, os, referrer, location, country, isBot });
+    db.get('urls').find({ s: id }).assign({ c: post.c + 1, i: info }).write();
     return reply.redirect(post.l);
 });
 
