@@ -1,5 +1,7 @@
 # lightning
 
+[!["Latest Release"](https://img.shields.io/github/release/ShaunLWM/lightning.svg)](https://github.com/ShaunLWM/lightning/releases/latest)
+[![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/ShaunLWM/lightning/blob/master/LICENSE)
 > Lightning fast URL shortener
 
 ## Installation
@@ -12,7 +14,7 @@ yarn/npm install
 
 ## Configuration
 ```
-db.json is the file where all the data resides
+db.json is a database file where all the data resides
 Port used is 8081
 ```
 
